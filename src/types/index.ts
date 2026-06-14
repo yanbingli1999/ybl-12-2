@@ -113,6 +113,8 @@ export interface GameConfig {
   maxRerolls: number;
   diceCount: number;
   enemyDamageVariance: number;
+  simulationEnergyCost: number;
+  maxSavedSimulations: number;
 }
 
 export interface Upgrade {
@@ -195,4 +197,44 @@ export interface DamageResult {
   shieldAbsorbed: number;
   isCrit: boolean;
   isMiss: boolean;
+}
+
+export interface DamageRange {
+  min: number;
+  max: number;
+  expected: number;
+  critChance: number;
+  missChance: number;
+}
+
+export interface SimulationMetrics {
+  playerDamageToEnemy: DamageRange;
+  enemyDamageToPlayer: DamageRange;
+  playerShieldGain: DamageRange;
+  playerHealGain: DamageRange;
+  playerEvasionBonus: number;
+  enemyEvasionReduction: number;
+  energyCost: number;
+  energyGap: number;
+  overheatedCabins: CabinType[];
+  survivalRisk: 'low' | 'medium' | 'high' | 'critical';
+  expectedPlayerHp: DamageRange;
+  expectedEnemyHp: DamageRange;
+}
+
+export interface SimulationPlan {
+  id: string;
+  timestamp: number;
+  name: string;
+  diceAllocation: Die[];
+  metrics: SimulationMetrics;
+  notes?: string;
+}
+
+export interface SimulationState {
+  plans: SimulationPlan[];
+  selectedPlanId: string | null;
+  isSimulating: boolean;
+  energyCostPerSimulation: number;
+  maxSavedPlans: number;
 }

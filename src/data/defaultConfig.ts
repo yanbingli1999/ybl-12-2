@@ -12,4 +12,6 @@ export const defaultConfig: GameConfig = {
   maxRerolls: 2,
   diceCount: 5,
   enemyDamageVariance: 0.2,
+  simulationEnergyCost: 3,
+  maxSavedSimulations: 3,
 };

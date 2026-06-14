@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Play, Flag, SkipForward, RotateCcw, Trophy, Skull } from 'lucide-react';
+import { Play, Flag, SkipForward, RotateCcw, Trophy, Skull, Eye } from 'lucide-react';
 import { DiceArea } from '../components/Dice/DiceArea';
 import { CabinArea } from '../components/Cabin/CabinArea';
 import { ShipStatus } from '../components/Ship/ShipStatus';
@@ -7,9 +7,11 @@ import { EnemyIntent } from '../components/Ship/EnemyIntent';
 import { BattleLog } from '../components/BattleLog/BattleLog';
 import { FloatingText } from '../components/BattleLog/FloatingText';
 import { Modal } from '../components/UI/Modal';
+import { TacticalSandbox } from '../components/TacticalSandbox/TacticalSandbox';
 import { useGameStore } from '../store/useGameStore';
 import { useDiceStore } from '../store/useDiceStore';
 import { useShipStore } from '../store/useShipStore';
+import { useSimulationStore } from '../store/useSimulationStore';
 import { hasAnyDiceAssigned } from '../utils/dice';
 
 export const BattlePage: React.FC = () => {
@@ -25,7 +27,11 @@ export const BattlePage: React.FC = () => {
   } = useGameStore();
   const { dice } = useDiceStore();
   const { rewardPoints, addRewardPoints } = useShipStore();
+  const { clearAllPlans, plans } = useSimulationStore();
+  const simState = useSimulationStore.getState();
+  const energyCostPerSimulation = simState.energyCostPerSimulation;
   const [showResultModal, setShowResultModal] = useState(false);
+  const [showSandbox, setShowSandbox] = useState(false);
 
   useEffect(() => {
     if (battleState && battleState.result !== 'ongoing') {
@@ -36,6 +42,7 @@ export const BattlePage: React.FC = () => {
   const handleStartBattle = () => {
     startBattle();
     setShowResultModal(false);
+    clearAllPlans();
   };
 
   const handleConfirmTurn = () => {
@@ -199,6 +206,18 @@ export const BattlePage: React.FC = () => {
           {isPlayerPhase && !isReplaying && (
             <div className="flex justify-center gap-4">
               <button
+                onClick={() => setShowSandbox(true)}
+                className="btn-primary flex items-center gap-2"
+              >
+                <Eye className="w-5 h-5" />
+                战术沙盘
+                {plans.length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 bg-neon-blue/20 text-neon-blue text-xs rounded-full">
+                    {plans.length}
+                  </span>
+                )}
+              </button>
+              <button
                 onClick={handleConfirmTurn}
                 disabled={!canConfirm}
                 className={`
@@ -222,6 +241,11 @@ export const BattlePage: React.FC = () => {
         <BattleLog logs={battleState.logs} />
       </div>
 
+      <TacticalSandbox 
+        isOpen={showSandbox} 
+        onClose={() => setShowSandbox(false)} 
+      />
+      
       <Modal
         isOpen={showResultModal}
         onClose={handleCloseModal}
