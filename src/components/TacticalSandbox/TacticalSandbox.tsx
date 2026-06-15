@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Eye, Zap, BarChart3, Trash2, X, Play, Loader2, GitCompare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, Zap, BarChart3, Trash2, X, Play, Loader2, GitCompare, CheckCircle } from 'lucide-react';
 import { SimulationCard } from './SimulationCard';
 import { useSimulationStore } from '../../store/useSimulationStore';
 import { useDiceStore } from '../../store/useDiceStore';
@@ -17,12 +17,29 @@ export const TacticalSandbox: React.FC<TacticalSandboxProps> = ({ isOpen, onClos
     plans, 
     selectedPlanId, 
     isSimulating, 
+    lastAppliedPlanId,
     runSimulation, 
     clearAllPlans,
+    loadSavedPlans,
   } = useSimulationStore();
   const state = useSimulationStore.getState();
   const energyCostPerSimulation = state.energyCostPerSimulation;
   const maxSavedPlans = state.maxSavedPlans;
+  
+  useEffect(() => {
+    if (isOpen) {
+      loadSavedPlans();
+    }
+  }, [isOpen, loadSavedPlans]);
+  
+  useEffect(() => {
+    if (lastAppliedPlanId) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [lastAppliedPlanId, onClose]);
   
   const { dice } = useDiceStore();
   const { battleState } = useGameStore();
@@ -205,6 +222,7 @@ export const TacticalSandbox: React.FC<TacticalSandboxProps> = ({ isOpen, onClos
                   plan={plan}
                   isSelected={selectedPlanId === plan.id}
                   index={index}
+                  isApplied={lastAppliedPlanId === plan.id}
                 />
               ))}
             </div>

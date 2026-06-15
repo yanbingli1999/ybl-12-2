@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Play, Flag, SkipForward, RotateCcw, Trophy, Skull, Eye } from 'lucide-react';
+import { Play, Flag, SkipForward, RotateCcw, Trophy, Skull, Eye, CheckCircle } from 'lucide-react';
 import { DiceArea } from '../components/Dice/DiceArea';
 import { CabinArea } from '../components/Cabin/CabinArea';
 import { ShipStatus } from '../components/Ship/ShipStatus';
@@ -27,17 +27,34 @@ export const BattlePage: React.FC = () => {
   } = useGameStore();
   const { dice } = useDiceStore();
   const { rewardPoints, addRewardPoints } = useShipStore();
-  const { clearAllPlans, plans } = useSimulationStore();
+  const { clearAllPlans, plans, lastAppliedPlanId, loadSavedPlans } = useSimulationStore();
   const simState = useSimulationStore.getState();
   const energyCostPerSimulation = simState.energyCostPerSimulation;
   const [showResultModal, setShowResultModal] = useState(false);
   const [showSandbox, setShowSandbox] = useState(false);
+  const [showApplyToast, setShowApplyToast] = useState(false);
+
+  useEffect(() => {
+    if (battleState && battleState.turn > 0) {
+      loadSavedPlans();
+    }
+  }, [battleState?.turn, loadSavedPlans]);
 
   useEffect(() => {
     if (battleState && battleState.result !== 'ongoing') {
       setShowResultModal(true);
     }
   }, [battleState?.result]);
+  
+  useEffect(() => {
+    if (lastAppliedPlanId) {
+      setShowApplyToast(true);
+      const timer = setTimeout(() => {
+        setShowApplyToast(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [lastAppliedPlanId]);
 
   const handleStartBattle = () => {
     startBattle();
@@ -146,6 +163,15 @@ export const BattlePage: React.FC = () => {
 
   return (
     <div className="relative">
+      {showApplyToast && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
+          <div className="glass-panel px-6 py-3 rounded-full flex items-center gap-2 border-neon-green/50 shadow-lg shadow-neon-green/20">
+            <CheckCircle className="w-5 h-5 text-neon-green" />
+            <span className="text-neon-green font-medium">方案已应用到战场</span>
+          </div>
+        </div>
+      )}
+      
       <FloatingText logs={battleState.logs} />
       
       <div className="flex items-center justify-between mb-4">

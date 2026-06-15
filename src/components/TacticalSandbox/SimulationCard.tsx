@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Heart, Swords, Zap, AlertTriangle, CheckCircle, XCircle, Trash2, Play } from 'lucide-react';
+import { Shield, Heart, Swords, Zap, AlertTriangle, CheckCircle, XCircle, Trash2, RotateCcw, Check } from 'lucide-react';
 import type { SimulationPlan, DamageRange, CabinType } from '../../types';
 import { useSimulationStore } from '../../store/useSimulationStore';
 
@@ -7,6 +7,7 @@ interface SimulationCardProps {
   plan: SimulationPlan;
   isSelected: boolean;
   index: number;
+  isApplied: boolean;
 }
 
 const cabinNames: Record<CabinType, string> = {
@@ -88,7 +89,7 @@ const DamageRangeDisplay: React.FC<{ range: DamageRange; label: string; icon: Re
   );
 };
 
-export const SimulationCard: React.FC<SimulationCardProps> = ({ plan, isSelected, index }) => {
+export const SimulationCard: React.FC<SimulationCardProps> = ({ plan, isSelected, index, isApplied }) => {
   const { selectSimulationPlan, deleteSimulationPlan, applySimulationPlan } = useSimulationStore();
   const { metrics } = plan;
   
@@ -128,13 +129,21 @@ export const SimulationCard: React.FC<SimulationCardProps> = ({ plan, isSelected
   return (
     <div 
       className={
-        'glass-panel rounded-lg p-4 cursor-pointer transition-all duration-200 ' +
-        (isSelected 
-          ? 'ring-2 ring-neon-blue shadow-lg shadow-neon-blue/20' 
-          : 'hover:bg-space-700/50')
+        'glass-panel rounded-lg p-4 cursor-pointer transition-all duration-300 relative ' +
+        (isApplied 
+          ? 'ring-2 ring-neon-green shadow-lg shadow-neon-green/20 bg-neon-green/5' 
+          : isSelected 
+            ? 'ring-2 ring-neon-blue shadow-lg shadow-neon-blue/20' 
+            : 'hover:bg-space-700/50')
       }
       onClick={() => selectSimulationPlan(isSelected ? null : plan.id)}
     >
+      {isApplied && (
+        <div className="absolute -top-2 -right-2 bg-neon-green text-space-900 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+          <Check className="w-3 h-3" />
+          已应用
+        </div>
+      )}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={
@@ -261,10 +270,25 @@ export const SimulationCard: React.FC<SimulationCardProps> = ({ plan, isSelected
                 e.stopPropagation();
                 applySimulationPlan(plan.id);
               }}
-              className="flex-1 btn-success flex items-center justify-center gap-1 text-sm"
+              className={
+                'flex-1 flex items-center justify-center gap-1 text-sm px-4 py-2 rounded-lg font-medium transition-all ' +
+                (isApplied 
+                  ? 'bg-neon-green/20 text-neon-green border border-neon-green/50 cursor-default' 
+                  : 'btn-success')
+              }
+              disabled={isApplied}
             >
-              <Play className="w-4 h-4" />
-              采用此方案
+              {isApplied ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  已应用到战场
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="w-4 h-4" />
+                  恢复此方案
+                </>
+              )}
             </button>
             <button
               onClick={(e) => {
